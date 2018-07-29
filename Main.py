@@ -11,7 +11,5 @@ if __name__ == "__main__":
     print("Program services: ", program_services)
     print("Graphics services: ", graphics_services)
 
-
-
     Framework = Framework.Framework(program_services, graphics_services)
     Framework.run()
