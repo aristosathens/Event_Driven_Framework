@@ -109,7 +109,9 @@ class Qt_Window(QWidget):
 
     @pyqtSlot(Event)
     def respond_to_event(self, event):
-        print("Qt_Window received external event: ", event)
+        self.move(350, 700)
+        print("Signal received")
+        # print("Qt_Window received external event: ", event)
 
     def keyPressEvent(self, e):
         if e.isAutoRepeat():
