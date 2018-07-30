@@ -1,16 +1,9 @@
 # Aristos Athens
 
-import time
-import sys
-import multiprocessing as mp
-from PyQt5.QtCore import Qt as qt
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QApplication
+import tkinter as tk
+from tkinter import ttk
 
 from Services_Template import *
-
-
-# ------------------------------Program Services------------------------------ #
 
 
 class Character_Service(ProgramService):
@@ -36,10 +29,8 @@ class Character_Service(ProgramService):
 
 
 
-# ------------------------------Graphics Services------------------------------ #
 
-# Service class. Spawns process for window (GUI) and does communication/compution in the original process
-class Qt_Service(GraphicsService):
+class Tk_Service(GraphicsService):
     def __init__(self, event_queue):
         events_serviced =   [
                             Event_Type.GLOBAL_START,
@@ -49,87 +40,39 @@ class Qt_Service(GraphicsService):
         GraphicsService.__init__(self, events_serviced, event_queue)
 
     def run(self, event):
-        print("here")
-        print(event.event_type)
 
         if event.event_type == Event_Type.GLOBAL_START:
-            k = Qt_Wrapper(self.event_queue)
-            self.gui_process = mp.Process(target=k.run, args=[event])
-            self.gui_process.start()
-            self.emitter = Qt_Emitter()
+            root = tk.Tk()
+            root.title("Feet to Meters")
+            mainframe = ttk.Frame(root, padding="3 3 12 12")
+            mainframe.grid(column=0, row=0, sticky="N, W, E, S")
+            mainframe.columnconfigure(0, weight=1)
+            mainframe.rowconfigure(0, weight=1)
 
-        elif event.event_type == Event_Type.UPDATE_GRAPHICS:
-            print("Attempting to emit signal")
-            self.emitter.emit(event)
+            self.feet = tk.StringVar()
+            self.meters = tk.StringVar()
+            feet_entry = ttk.Entry(mainframe, width=7, textvariable=self.feet)
+            feet_entry.grid(column=2, row=1, sticky="W, E")
+            ttk.Label(mainframe, textvariable=self.meters).grid(column=2, row=2, sticky="W, E")
+            ttk.Button(mainframe, text="Calculate", command=self.calculate).grid(column=3, row=3, sticky="W")
+            ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky="W")
+            ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky="E")
+            ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky="W")
 
-        elif event.event_type == Event_Type.KEY_DOWN:
-            key = event.parameter
+            for child in mainframe.winfo_children():
+                child.grid_configure(padx=5, pady=5)
+            feet_entry.focus()
+            root.bind('<Return>', self.calculate)
+            root.mainloop()
 
-class Qt_Emitter(QObject):
-    my_signal = pyqtSignal(Event)
-    def __init__(self):
-        QObject.__init__(self, parent=None)
-        self.my_signal.connect(Qt_Window.respond_to_event)
-
-    def emit(self, event):
-        self.my_signal.emit(event)
-
-
-
-# Wrapper class that creates and runs the window object.
-# Main reason for this is that we can't pickle a QObject, so we can't set a Process target to app.exe_() directly 
-class Qt_Wrapper:
-    def __init__(self, event_queue):
-        self.event_queue = event_queue
-
-    def run(self, event):
-        if event.event_type == Event_Type.GLOBAL_START:
-            self.app = QApplication(sys.argv)
-            self.window = Qt_Window(self.event_queue)
-            self.app.exec_()
-
-# Window class. Actual GUI processes occur here
-class Qt_Window(QWidget):
-    def __init__(self, event_queue):
-        super().__init__()
-        self.width = 400
-        self.height = 300
-        self.resize(self.width, self.height)
-        self.center_window()
-        self.event_queue = event_queue
-        self.setWindowTitle("Aristos' App")
-        self.show()
+    def calculate(self, *args):
+        try:
+            value = float(feet.get())
+            self.meters.set((0.3048 * value * 10000.0 + 0.5)/10000.0)
+        except ValueError:
+            pass
+            # elif event.event_type == Event_Type.UPDATE_GRAPHICS:
 
 
-    def center_window(self):
-        self.desktop_center = QDesktopWidget().availableGeometry().center()
-        self.desktop_center.setX(self.desktop_center.x() - int(self.width/2))
-        self.desktop_center.setY(self.desktop_center.y() - int(self.height/2))
-        self.move(self.desktop_center)
-
-    @pyqtSlot(Event)
-    def respond_to_event(self, event):
-        self.move(350, 700)
-        print("Signal received")
-        # print("Qt_Window received external event: ", event)
-
-    def keyPressEvent(self, e):
-        if e.isAutoRepeat():
-            return
-
-        key = e.key()
-        if key == qt.Key_Escape:
-            self.event_queue.put(Event(Event_Type.GLOBAL_EXIT, None))
-            self.close()
-            sys.exit(0)
-            return
-        elif key == qt.Key_C:
-            self.move(200, 600)
-        elif key == qt.Key_F:
-            self.move(600, 200)
-
-        elif key == qt.Key_E:
-            self.event_queue.put(Event(Event_Type.UPDATE_GRAPHICS, None))
-
-        elif key < 0x10FFFF:
-            self.event_queue.put(Event(Event_Type.KEY_DOWN, chr(key)))
+        # elif event.event_type == Event_Type.KEY_DOWN:
+        #     key = event.parameter
