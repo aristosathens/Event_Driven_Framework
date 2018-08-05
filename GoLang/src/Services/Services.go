@@ -2,77 +2,73 @@ package Services
 
 import (
 	. "ServiceInterface"
-	"container/list"
+	"bufio"
 	"fmt"
+	"os"
 )
 
-// ------------------------------------------- Public ------------------------------------------- //
+// ------------------------------------------- Service Names ------------------------------------------- //
 
 // Put custom event types here. Assign them to positive integers
 const (
-	UPDATE_GRAPHICS EventType = 1
+	PING EventType = 1
+	PONG EventType = 2
 )
 
 // Returns array of all Services. All services MUST be put in this array
-func AllServices() []Service {
-	allServices := []Service{
-		IOService{},
-		TestService{},
+func AllServiceNames() []func(event Event, sendChannel *chan Event) Event {
+	return []func(event Event, sendChannel *chan Event) Event{
+		IOService,
+		// TestService,
 	}
-	return allServices
 }
 
 // ------------------------------------------- Services ------------------------------------------- //
 
-// A service must be defined as a struct and implement the methods defined in Service{} in the ServiceInterface.go file
-// IMPORTANT: All services must be included in the array in the AllServices() function
+// To create new services, implement ServiceNameRun() functions.
+// All ServiceNameRun() functions must be included in the array in the AllServiceNames() function
 
 // ------------- IO Service ------------- //
 
-type IOService struct {
-	ServiceFields
+func IOService(event Event, sendChannel *chan Event) Event {
+	fmt.Println("IO service got event: ", event.Type)
+	returnEvent := NewEvent(NONE, "")
+
+	switch eventType := event.Type; eventType {
+	case GLOBAL_EXIT:
+		returnEvent.Type = FINISHED
+	case GLOBAL_START:
+		fmt.Println("IOService sees GLOBAL_START event")
+		go inputMonitor(sendChannel)
+	case KEY_DOWN:
+		fmt.Println("Key stroked detected: ", event.Parameter)
+	}
+	return returnEvent
 }
 
-func (s IOService) Init() {
-}
-
-func (s IOService) Post(event Event) {
-	s.EventQueue.PushBack(event)
-}
-
-func (s IOService) Run() {
+func inputMonitor(sendChannel *chan Event) {
+	reader := bufio.NewReader(os.Stdin)
 	for {
-		// next and event are of type list Element
-		// To get underlying Event struct we use: event.Value.(Event)
-		var next *list.Element
-		for event := s.EventQueue.Front(); event != nil; event = next {
-			next = event.Next()
-			s.EventQueue.Remove(event)
-
-			switch eventType := event.Value.(Event).Type; eventType {
-			case GLOBAL_EXIT:
-				return
-			case GLOBAL_START:
-				//
-			}
-		}
+		fmt.Print("Enter text: ")
+		text, _ := reader.ReadString('\n')
+		*sendChannel <- NewEvent(KEY_DOWN, text)
+		// fmt.Println(text)
 	}
 }
 
 // ------------- Test Service ------------- //
 
-type TestService struct {
-	ServiceFields
-}
+func TestService(event Event, sendChannel chan Event) Event {
+	returnEvent := NewEvent(NONE, "")
 
-func (s TestService) Init() {
-
-}
-
-func (s TestService) Post() {
-
-}
-
-func (s TestService) Run() {
-
+	fmt.Println("In Service run function")
+	switch eventType := event.Type; eventType {
+	case GLOBAL_EXIT:
+		returnEvent.Type = FINISHED
+	case PING:
+		fmt.Println(fmt.Sprintf("TestService received %s %d event from %s ", event.Parameter, event.Type, event.Origin))
+	default:
+		//
+	}
+	return returnEvent
 }

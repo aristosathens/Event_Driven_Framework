@@ -1,8 +1,9 @@
-package Main
+package main
 
 import (
 	. "Framework"
 	"fmt"
+	// "strconv"
 )
 
 // This gets whenever the containing package is imported.
@@ -19,5 +20,10 @@ func init() {
 func main() {
 	fmt.Println("Main package running...")
 	Framework := Framework{}
+	// Framework.InitDebug()
+	// Framework.RunDebug()
+	Framework.Init()
 	Framework.Run()
+	Framework.Close()
+	fmt.Println("Main package finished running.")
 }

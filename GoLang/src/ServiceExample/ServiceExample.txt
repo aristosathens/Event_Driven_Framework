@@ -1,0 +1,57 @@
+package Services
+
+import (
+	. "ServiceInterface"
+	"fmt"
+	)
+
+
+// ------------------------------------------- ------ ------------------------------------------- //
+// Example file for Services.go
+// To use framework, add EventType constants and implement ServiceRun() functions
+// Add ServiceRun() functions to array in AllServiceNames()
+
+// ------------------------------------------- ------ ------------------------------------------- //
+
+
+// ------------------------------------------- Public ------------------------------------------- //
+
+// Put custom event types here. Assign them to positive integers
+const (
+	EXAMPLE_EVENT EvenType = 1
+	EXAMPLE_EVENTX EventType = 2
+)
+
+// Returns array of all Services. All services MUST be put in this array
+func AllServiceNames() []func(event Event) {
+	return []func(event Event){
+		IOServiceRun,
+		// TestService,
+	}
+}
+
+// ------------------------------------------- Services ------------------------------------------- //
+
+// To create new services, implement ServiceNameRun() functions.
+// All ServiceNameRun() functions must be included in the array in the AllServiceNames() function
+
+// ------------- IO Service ------------- //
+
+func IOServiceRun(event Event) {
+
+	switch eventType := event.Type; eventType {
+	case GLOBAL_EXIT:
+		return
+	case GLOBAL_START:
+		fmt.Println("IOService sees GLOBAL_START event")
+	case: EXAMPLE_EVENT:
+		//implement this
+		
+	}
+}
+
+// ------------- Test Service ------------- //
+
+func TestServiceRun(event Event) {
+	//
+}
