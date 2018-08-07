@@ -11,17 +11,16 @@ import (
 
 type Framework struct {
 	Services        []*Service
-	SendChannel     chan<- Event
 	ReceiveChannel  <-chan Event
-	sendChannels    []chan Event
-	receiveChannels []chan Event
+	sendChannels    []chan<- Event
+	receiveChannels []<-chan Event
 }
 
 // Get list of all services and init each one
 func (f *Framework) Init() {
 	f.Services = make([]*Service, len(AllServiceInterfaces))
-	f.receiveChannels = make([]chan Event, len(AllServiceInterfaces))
-	f.sendChannels = make([]chan Event, len(AllServiceInterfaces))
+	f.receiveChannels = make([]<-chan Event, len(AllServiceInterfaces))
+	f.sendChannels = make([]chan<- Event, len(AllServiceInterfaces))
 
 	for i, serviceInterface := range AllServiceInterfaces {
 		s := NewService(serviceInterface)
@@ -30,26 +29,26 @@ func (f *Framework) Init() {
 		f.sendChannels[i] = f.Services[i].ReceiveChannel
 		go s.Run()
 	}
+	f.ReceiveChannel = f.mergeChannels(f.receiveChannels)
 }
 
 // Runs the Framework. Monitors receiveChannel
 func (f *Framework) Run() {
-	fmt.Println("Starting Framework Run()...")
 	f.Post(NewEvent(GLOBAL_START, ""))
 	for {
-		event := <-f.ReceiveChannel
-		fmt.Println("event detected in Framework")
-		f.Post(event)
-		// f.Post(NewEvent(PING, ""))
-		if event.Type == GLOBAL_EXIT {
-			break
+		select {
+		case event := <-f.ReceiveChannel:
+			fmt.Println("event detected in Framework")
+			f.Post(event)
+			if event.Type == GLOBAL_EXIT {
+				return
+			}
 		}
 	}
 }
 
 // Post an event to all Services
 func (f *Framework) Post(event Event) {
-	fmt.Println("Posting")
 	for i, _ := range f.sendChannels {
 		f.sendChannels[i] <- event
 	}
@@ -68,44 +67,35 @@ func (f *Framework) Close() {
 			}
 		}
 	}
+	for _, ch := range f.sendChannels {
+		close(ch)
+	}
 }
 
 // ------------------------------------------- Utilities ------------------------------------------- //
 
-// Takes an array of input channels (i.e. service --> framework channels)
+// Takes an array of input channels (i.e. framework <- service channels)
 // Returns a single channel, which framework can use to monitor all services
-// func mergeChannels(channels []chan Event) <-chan Event {
-// 	output := make(chan Event, bufferSize)
-// 	for _, channel := range channels {
-// 		go func(output chan Event, channel <-chan Event) {
-// 			for {
-// 				event := <-channel
-// 				output <- event
-// 			}
-// 		}(output, channel)
-// 	}
-// 	return output
-// }
-
-// func distributeChannels(channels []chan Event) chan<- Event {
-// 	input := make(chan Event, bufferSize)
-// 	for _, channel := range channels {
-// 		go func(input chan Event, channel chan<- Event) {
-// 			for {
-// 				event := <-input
-// 				channel <- event
-// 			}
-// 		}(input, channel)
-// 	}
-// 	return input
-// }
-
-// func (f Framework) WaitFor
+func (f *Framework) mergeChannels(channels []<-chan Event) <-chan Event {
+	aggregateChannel := make(chan Event)
+	for _, ch := range channels {
+		go func(c <-chan Event) {
+			for {
+				msg, flag := <-c
+				if !flag {
+					break
+				}
+				aggregateChannel <- msg
+			}
+			// close(aggregateChannel)
+		}(ch)
+	}
+	return aggregateChannel
+}
 
 // ------------------------------------------- Debugging ------------------------------------------- //
 
-// To use, Uncomment InitBug() and RunDebug() in Main.go
-// Rewrite Run() for testing rest of Framework
+// To use, Uncomment InitDebug() and RunDebug() in Main.go
 
 // var testCounter int
 

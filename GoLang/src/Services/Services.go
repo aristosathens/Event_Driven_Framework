@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	// "unsafe"
 )
 
 // ------------------------------------------- Service Names ------------------------------------------- //
@@ -20,21 +19,20 @@ const (
 
 var AllServiceInterfaces = [...]ServiceInterface{
 	&(IOService{}),
+	&(TestService{}),
 }
 
 // ------------------------------------------- Services ------------------------------------------- //
 
-// To create new services, implement ServiceNameRun() functions.
-// All ServiceNameRun() functions must be included in the array in the AllServiceNames() function
+// To create new services, create a struct and implement the methods found in ServiceInterface in ServiceInterface.go
+// All service structs must be in the AllServiceInterfaces array at the top of Services.go
 
 // ------------- IO Service ------------- //
 type IOService struct {
-	// Service specific variables here
 	exampleLocal int
 }
 
 func (s *IOService) Init() {
-	// s.newLocal = 5
 	s.exampleLocal = 5
 }
 
@@ -49,7 +47,7 @@ func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 		fmt.Println("IOService sees GLOBAL_START event")
 		returnEvent.Type = GET_USER_INPUT
 	case GET_USER_INPUT:
-		go inputMonitor(sendChannel)
+		go s.inputMonitor(sendChannel)
 	case KEY_DOWN:
 		fmt.Println("Key stroked detected: ", event.Parameter)
 	}
@@ -57,25 +55,24 @@ func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 	return returnEvent
 }
 
-func inputMonitor(sendChannel chan Event) {
+func (s *IOService) inputMonitor(sendChannel chan Event) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter text: ")
 	text, _ := reader.ReadString('\n')
 	text = strings.TrimSpace(text)
-	// if strings.Compare(text, "exit") == 0 {
-	// 	*sendChannel <- NewEvent(GLOBAL_EXIT, "")
-	// 	fmt.Println("comparison passed")
-	// 	return
-	// }
 	sendChannel <- NewEvent(KEY_DOWN, text)
 }
 
 // ------------- Test Service ------------- //
 
-func TestService(event Event, sendChannel chan Event) Event {
-	returnEvent := NewEvent(NONE, "")
+type TestService struct {
+}
 
-	fmt.Println("In Service run function")
+func (s *TestService) Init() {
+}
+
+func (s *TestService) RunFunction(event Event, sendChannel chan Event) Event {
+	returnEvent := NewEvent(NONE, "")
 	switch eventType := event.Type; eventType {
 	case GLOBAL_EXIT:
 		returnEvent.Type = FINISHED
@@ -83,10 +80,9 @@ func TestService(event Event, sendChannel chan Event) Event {
 		fmt.Println(fmt.Sprintf("TestService received %s %d event from %s ", event.Parameter, event.Type, event.Origin))
 	case KEY_DOWN:
 		if event.Parameter == "exit" {
+			fmt.Println("Detected exit key stroke")
 			returnEvent.Type = GLOBAL_EXIT
 		}
-	default:
-		//
 	}
 	return returnEvent
 }

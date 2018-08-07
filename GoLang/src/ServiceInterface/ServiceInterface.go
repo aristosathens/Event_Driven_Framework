@@ -1,11 +1,9 @@
 package ServiceInterface
 
 import (
-	// . "container/list"
 	"fmt"
 	"reflect"
 	"runtime"
-	// "unsafe"
 )
 
 // ------------------------------------------- Event Definitions ------------------------------------------- //
@@ -14,7 +12,6 @@ import (
 type EventType int
 
 // These are the EventTypes necessary in every application.
-// Every EventType listed here must also be put in the array in the GetGlobalEventTypes() function
 // To create custom event types, create a similar list in the Services.go file corresponding to your application. Use positive int values
 const (
 	NONE         EventType = -1
@@ -33,6 +30,7 @@ type Event struct {
 	Seen      bool
 }
 
+// Event constructor
 func NewEvent(eventType EventType, param string) Event {
 	newEvent := Event{}
 	newEvent.Type = eventType
@@ -48,12 +46,13 @@ const (
 	BufferSize = 200
 )
 
+// All services must be a struct with implementations of the methods defined in this interface
 type ServiceInterface interface {
 	Init()
 	RunFunction(Event, chan Event) Event
 }
 
-// Every service must embed a Service struct
+// Every user defined ServiceStruct (in Services.go) will be embedded here in a Service struct as Locals
 type Service struct {
 	Name           string
 	Active         bool
@@ -64,9 +63,6 @@ type Service struct {
 }
 
 // // Constructor for a Service struct
-// func NewService(service ServiceInterface, receiveChannel chan Event, sendChannel chan Event) {
-
-// }
 func NewService(serviceStruct ServiceInterface) Service {
 	newStruct := Service{}
 	newStruct.Active = false
@@ -90,33 +86,24 @@ func (s *Service) Run() {
 	for {
 		select {
 		case event = <-s.ReceiveChannel:
-			fmt.Println("event detected in service: ", event.Type)
-			fmt.Println("event origin: ", event.Origin)
-			fmt.Println("event detected in service: ", event.Type)
-
-			fmt.Println(s)
-
 			returnEvent := s.RunFunction(event, (*s).SendChannel)
 			if returnEvent.Type == FINISHED {
-				fmt.Println("Received FINISHED event")
 				s.Close()
 				return
 			}
 			if returnEvent.Type != NONE {
-				fmt.Println("Received normal event")
 				s.SendChannel <- returnEvent
 			}
 		default:
-			// continue
+			//
 		}
 
 	}
 }
 
-// Closes the service
+// Closes the sending channel and sets status to inactive
 func (s *Service) Close() {
 	fmt.Println("Closing ", s.Name)
-	close(s.ReceiveChannel)
 	close(s.SendChannel)
 	s.Active = false
 }
