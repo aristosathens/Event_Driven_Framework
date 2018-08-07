@@ -10,26 +10,25 @@ import (
 // ------------------------------------------- Framework ------------------------------------------- //
 
 type Framework struct {
-	Services        []*Service
-	ReceiveChannel  <-chan Event
-	sendChannels    []chan<- Event
-	receiveChannels []<-chan Event
+	Services       []*Service
+	ReceiveChannel <-chan Event
+	sendChannels   []chan<- Event
 }
 
 // Get list of all services and init each one
 func (f *Framework) Init() {
 	f.Services = make([]*Service, len(AllServiceInterfaces))
-	f.receiveChannels = make([]<-chan Event, len(AllServiceInterfaces))
+	receiveChannels := make([]<-chan Event, len(AllServiceInterfaces))
 	f.sendChannels = make([]chan<- Event, len(AllServiceInterfaces))
 
 	for i, serviceInterface := range AllServiceInterfaces {
 		s := NewService(serviceInterface)
 		f.Services[i] = &s
-		f.receiveChannels[i] = f.Services[i].SendChannel
+		receiveChannels[i] = f.Services[i].SendChannel
 		f.sendChannels[i] = f.Services[i].ReceiveChannel
 		go s.Run()
 	}
-	f.ReceiveChannel = f.mergeChannels(f.receiveChannels)
+	f.ReceiveChannel = f.mergeChannels(receiveChannels)
 }
 
 // Runs the Framework. Monitors receiveChannel
@@ -77,7 +76,7 @@ func (f *Framework) Close() {
 // Takes an array of input channels (i.e. framework <- service channels)
 // Returns a single channel, which framework can use to monitor all services
 func (f *Framework) mergeChannels(channels []<-chan Event) <-chan Event {
-	aggregateChannel := make(chan Event)
+	aggregateChannel := make(chan Event, BufferSize)
 	for _, ch := range channels {
 		go func(c <-chan Event) {
 			for {
@@ -87,7 +86,6 @@ func (f *Framework) mergeChannels(channels []<-chan Event) <-chan Event {
 				}
 				aggregateChannel <- msg
 			}
-			// close(aggregateChannel)
 		}(ch)
 	}
 	return aggregateChannel
