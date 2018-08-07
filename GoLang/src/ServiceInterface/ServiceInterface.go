@@ -1,11 +1,11 @@
 package ServiceInterface
 
 import (
-	"fmt"
 	// . "container/list"
-	// "unsafe"
+	"fmt"
 	"reflect"
 	"runtime"
+	// "unsafe"
 )
 
 // ------------------------------------------- Event Definitions ------------------------------------------- //
@@ -44,23 +44,40 @@ func NewEvent(eventType EventType, param string) Event {
 
 // ------------------------------------------- Service Definitions ------------------------------------------- //
 
-// Every service must embed a ServiceFields struct
+const (
+	BufferSize = 200
+)
+
+type ServiceInterface interface {
+	Init()
+	RunFunction(Event, chan Event) Event
+}
+
+// Every service must embed a Service struct
 type Service struct {
 	Name           string
 	Active         bool
 	ReceiveChannel chan Event
 	SendChannel    chan Event
-	RunFunction    func(Event, *chan Event) Event
+	RunFunction    func(Event, chan Event) Event
+	Locals         ServiceInterface
 }
 
-// Constructor for a Service struct
-func NewService(receiveChannel chan Event, sendChannel chan Event, runFunction func(Event, *chan Event) Event) Service {
+// // Constructor for a Service struct
+// func NewService(service ServiceInterface, receiveChannel chan Event, sendChannel chan Event) {
+
+// }
+func NewService(serviceStruct ServiceInterface) Service {
 	newStruct := Service{}
-	newStruct.Name = getFunctionName(runFunction)
 	newStruct.Active = false
-	newStruct.ReceiveChannel = receiveChannel
-	newStruct.SendChannel = sendChannel
-	newStruct.RunFunction = runFunction
+
+	newStruct.Locals = serviceStruct
+	newStruct.Locals.Init()
+	newStruct.RunFunction = serviceStruct.RunFunction
+	newStruct.Name = getFunctionName(serviceStruct.RunFunction)
+
+	newStruct.ReceiveChannel = make(chan Event, BufferSize)
+	newStruct.SendChannel = make(chan Event, BufferSize)
 	return newStruct
 }
 
@@ -77,7 +94,9 @@ func (s *Service) Run() {
 			fmt.Println("event origin: ", event.Origin)
 			fmt.Println("event detected in service: ", event.Type)
 
-			returnEvent := s.RunFunction(event, &((*s).SendChannel))
+			fmt.Println(s)
+
+			returnEvent := s.RunFunction(event, (*s).SendChannel)
 			if returnEvent.Type == FINISHED {
 				fmt.Println("Received FINISHED event")
 				s.Close()
@@ -94,7 +113,7 @@ func (s *Service) Run() {
 	}
 }
 
-// Closes the service's channels
+// Closes the service
 func (s *Service) Close() {
 	fmt.Println("Closing ", s.Name)
 	close(s.ReceiveChannel)
@@ -125,6 +144,7 @@ func myCaller() string {
 	return fun.Name() // return its name
 }
 
+// Given a function, returns its name
 func getFunctionName(i interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }

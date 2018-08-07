@@ -5,22 +5,21 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
+	// "unsafe"
 )
 
 // ------------------------------------------- Service Names ------------------------------------------- //
 
 // Put custom event types here. Assign them to positive integers
 const (
-	PING EventType = 1
-	PONG EventType = 2
+	PING           EventType = 1
+	PONG           EventType = 2
+	GET_USER_INPUT EventType = 3
 )
 
-// Returns array of all Services. All services MUST be put in this array
-func AllServiceNames() []func(event Event, sendChannel *chan Event) Event {
-	return []func(event Event, sendChannel *chan Event) Event{
-		IOService,
-		// TestService,
-	}
+var AllServiceInterfaces = [...]ServiceInterface{
+	&(IOService{}),
 }
 
 // ------------------------------------------- Services ------------------------------------------- //
@@ -29,8 +28,17 @@ func AllServiceNames() []func(event Event, sendChannel *chan Event) Event {
 // All ServiceNameRun() functions must be included in the array in the AllServiceNames() function
 
 // ------------- IO Service ------------- //
+type IOService struct {
+	// Service specific variables here
+	exampleLocal int
+}
 
-func IOService(event Event, sendChannel *chan Event) Event {
+func (s *IOService) Init() {
+	// s.newLocal = 5
+	s.exampleLocal = 5
+}
+
+func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 	fmt.Println("IO service got event: ", event.Type)
 	returnEvent := NewEvent(NONE, "")
 
@@ -39,21 +47,27 @@ func IOService(event Event, sendChannel *chan Event) Event {
 		returnEvent.Type = FINISHED
 	case GLOBAL_START:
 		fmt.Println("IOService sees GLOBAL_START event")
+		returnEvent.Type = GET_USER_INPUT
+	case GET_USER_INPUT:
 		go inputMonitor(sendChannel)
 	case KEY_DOWN:
 		fmt.Println("Key stroked detected: ", event.Parameter)
 	}
+	fmt.Println("returning from IO Service")
 	return returnEvent
 }
 
-func inputMonitor(sendChannel *chan Event) {
+func inputMonitor(sendChannel chan Event) {
 	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print("Enter text: ")
-		text, _ := reader.ReadString('\n')
-		*sendChannel <- NewEvent(KEY_DOWN, text)
-		// fmt.Println(text)
-	}
+	fmt.Print("Enter text: ")
+	text, _ := reader.ReadString('\n')
+	text = strings.TrimSpace(text)
+	// if strings.Compare(text, "exit") == 0 {
+	// 	*sendChannel <- NewEvent(GLOBAL_EXIT, "")
+	// 	fmt.Println("comparison passed")
+	// 	return
+	// }
+	sendChannel <- NewEvent(KEY_DOWN, text)
 }
 
 // ------------- Test Service ------------- //
@@ -67,6 +81,10 @@ func TestService(event Event, sendChannel chan Event) Event {
 		returnEvent.Type = FINISHED
 	case PING:
 		fmt.Println(fmt.Sprintf("TestService received %s %d event from %s ", event.Parameter, event.Type, event.Origin))
+	case KEY_DOWN:
+		if event.Parameter == "exit" {
+			returnEvent.Type = GLOBAL_EXIT
+		}
 	default:
 		//
 	}
