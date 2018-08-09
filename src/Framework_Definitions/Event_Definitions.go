@@ -1,6 +1,8 @@
 package Framework_Definitions
 
-import ()
+import (
+	"strings"
+)
 
 // ------------------------------------------- Event Definitions ------------------------------------------- //
 
@@ -14,8 +16,13 @@ const (
 	GLOBAL_START EventType = -2
 	GLOBAL_EXIT  EventType = -3
 	FINISHED     EventType = -4
-	KEY_DOWN     EventType = -5
-	KEY_UP       EventType = -6
+)
+
+// The use of EventType alias and the constants is like an enumerate type
+type ParameterType int
+
+const (
+	EMPTY ParameterType = 0
 )
 
 // Define the Event struct, which is used to pass messages between services
@@ -24,7 +31,6 @@ type Event struct {
 	Parameter string
 	Origin    string
 	Target    string
-	// Seen      bool
 }
 
 // Event constructor
@@ -34,6 +40,8 @@ func NewEvent(eventType EventType, param string, target string) Event {
 	newEvent.Parameter = param
 	newEvent.Origin = myCaller()
 	newEvent.Target = target
-	// newEvent.Seen = false
+	if strings.ToLower(target) == "self" {
+		newEvent.Target = myCaller()
+	}
 	return newEvent
 }

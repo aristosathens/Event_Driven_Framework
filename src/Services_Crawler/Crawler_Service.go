@@ -6,11 +6,11 @@ import (
 	"JSON_Saver"
 	"fmt"
 	"github.com/kardianos/osext"
+	"net/url"
+	// "strings"
 	// "os"
 	// "path/filepath"
 )
-
-const ()
 
 // ------------------------------------------- Public ------------------------------------------- //
 
@@ -31,29 +31,46 @@ func (s *CrawlerService) Init() string {
 
 func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event {
 	fmt.Println("Entering Crawler Service Run Function...")
-
 	returnEvent := NewEvent(NONE, "", "")
 
 	switch event.Type {
+
 	case GLOBAL_START:
-		returnEvent.Type = REQUEST_USER_INPUT
-		returnEvent.Parameter = "Enter urls you would like to add: "
 
 	case GLOBAL_EXIT:
 		returnEvent.Type = FINISHED
+
+	case USER_INPUT:
 	}
 
 	fmt.Println("Exiting Crawler service")
-
 	return returnEvent
 }
 
 // ------------------------------------------- Private ------------------------------------------- //
 
+// func (s *CrawlerService) updateScreen() {
+// 	switch s.status {
+// 	case MENU:
+// 	case INPUT_NEW_WEBSITES:
+// 	}
+// }
+
 // ------------------------------------------- Utilities ------------------------------------------- //
 
+// Respond to errors
 func checkError(err error) {
 	if err != nil {
 		panic(err)
+	}
+}
+
+// Checks if string is a valid URL
+func isValidUrl(toCheck string) bool {
+	_, err := url.ParseRequestURI(toCheck)
+	if err != nil {
+		return false
+	} else {
+		return true
 	}
 }
