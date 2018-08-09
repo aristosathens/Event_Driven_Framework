@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 // ------------------------------------------- Service Definitions ------------------------------------------- //
@@ -75,7 +76,7 @@ func (s *Service) Close() {
 
 // ------------------------------------------- Utility Functions ------------------------------------------- //
 
-// https://stackoverflow.com/a/35213181/9463878
+// Modified version of this SO answer: https://stackoverflow.com/a/35213181/9463878
 // MyCaller returns the caller of the function that called it. Use to set name of Service
 func myCaller() string {
 
@@ -93,7 +94,13 @@ func myCaller() string {
 		return "n/a"
 	}
 
-	return fun.Name() // return its name
+	name := fun.Name()
+	start := strings.Index(name, "*") + 1
+	end := strings.Index(name, ")")
+
+	newName := name[start:end]
+
+	return newName
 }
 
 // Given a function, returns its name

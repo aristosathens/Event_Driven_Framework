@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-// ------------- IO Service ------------- //
-
 // ------------------------------------------- Public ------------------------------------------- //
 
 type IOService struct {
@@ -44,9 +42,14 @@ func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 // ------------------------------------------- Private ------------------------------------------- //
 
 func (s *IOService) readUserInput(e Event, sendChannel chan Event) {
-	fmt.Print("Enter text: ")
+	fmt.Print(e.Parameter)
 	text, _ := s.reader.ReadString('\n')
 	text = strings.TrimSpace(text)
-	newEvent := NewEvent(USER_INPUT, text, e.Origin)
+	var newEvent Event
+	if text == "exit" {
+		newEvent = NewEvent(GLOBAL_EXIT, "", "")
+	} else {
+		newEvent = NewEvent(USER_INPUT, text, e.Origin)
+	}
 	sendChannel <- newEvent
 }

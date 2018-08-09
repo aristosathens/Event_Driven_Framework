@@ -20,14 +20,11 @@ type CrawlerService struct {
 }
 
 func (s *CrawlerService) Init() string {
-	// fmt.Println("Entering Crawler service init")
-
 	path, err := osext.ExecutableFolder()
 	checkError(err)
 
 	err = JSONSaver.Load(path+"\\websites.JSON", &s.websites)
 	checkError(err)
-	// fmt.Println("Exiting Crawler service init")
 
 	return "CrawlerService"
 }
@@ -52,10 +49,6 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 }
 
 // ------------------------------------------- Private ------------------------------------------- //
-
-// func (s *CrawlerService) onStart Event {
-
-// }
 
 // ------------------------------------------- Utilities ------------------------------------------- //
 
