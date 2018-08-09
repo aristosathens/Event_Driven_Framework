@@ -1,44 +1,10 @@
-package ServiceInterface
+package Framework_Definitions
 
 import (
 	"fmt"
 	"reflect"
 	"runtime"
 )
-
-// ------------------------------------------- Event Definitions ------------------------------------------- //
-
-// The use of EventType alias and the constants is like an enumerate type
-type EventType int
-
-// These are the EventTypes necessary in every application.
-// To create custom event types, create a similar list in the Services.go file corresponding to your application. Use positive int values
-const (
-	NONE         EventType = -1
-	GLOBAL_START EventType = -2
-	GLOBAL_EXIT  EventType = -3
-	FINISHED     EventType = -4
-	KEY_DOWN     EventType = -5
-	KEY_UP       EventType = -6
-)
-
-// Define the Event struct, which is used to pass messages between services
-type Event struct {
-	Type      EventType
-	Parameter string
-	Origin    string
-	Seen      bool
-}
-
-// Event constructor
-func NewEvent(eventType EventType, param string) Event {
-	newEvent := Event{}
-	newEvent.Type = eventType
-	newEvent.Parameter = param
-	newEvent.Origin = myCaller()
-	newEvent.Seen = false
-	return newEvent
-}
 
 // ------------------------------------------- Service Definitions ------------------------------------------- //
 
@@ -48,7 +14,7 @@ const (
 
 // All services must be a struct with implementations of the methods defined in this interface
 type ServiceInterface interface {
-	Init()
+	Init() string
 	RunFunction(Event, chan Event) Event
 }
 
@@ -68,9 +34,8 @@ func NewService(serviceStruct ServiceInterface) Service {
 	newStruct.Active = false
 
 	newStruct.Locals = serviceStruct
-	newStruct.Locals.Init()
+	newStruct.Name = newStruct.Locals.Init()
 	newStruct.RunFunction = serviceStruct.RunFunction
-	newStruct.Name = getFunctionName(serviceStruct.RunFunction)
 
 	newStruct.ReceiveChannel = make(chan Event, BufferSize)
 	newStruct.SendChannel = make(chan Event, BufferSize)

@@ -1,8 +1,8 @@
 package Framework
 
 import (
-	. "ServiceInterface"
-	. "Services"
+	. "Framework_Definitions"
+	. "Services_Crawler"
 	"fmt"
 	"strconv"
 )
@@ -33,7 +33,7 @@ func (f *Framework) Init() {
 
 // Runs the Framework. Monitors receiveChannel
 func (f *Framework) Run() {
-	f.Post(NewEvent(GLOBAL_START, ""))
+	f.Post(NewEvent(GLOBAL_START, "", ""))
 	for {
 		select {
 		case event := <-f.ReceiveChannel:
@@ -48,14 +48,25 @@ func (f *Framework) Run() {
 
 // Post an event to all Services
 func (f *Framework) Post(event Event) {
+	if event.Type == NONE {
+		return
+	}
+	postFlag := false
 	for i, _ := range f.sendChannels {
-		f.sendChannels[i] <- event
+		if event.Target == "" || event.Target == f.Services[i].Name {
+			fmt.Println("Posting to: ", f.Services[i].Name)
+			f.sendChannels[i] <- event
+			postFlag = true
+		}
+	}
+	if !postFlag {
+		fmt.Println("Warning: Event received but not posted!")
 	}
 }
 
 // Waits until every service is set to inactive. This ensures all queued events are handled and channels are closed before exiting
 func (f *Framework) Close() {
-	f.Post(NewEvent(GLOBAL_EXIT, ""))
+	f.Post(NewEvent(GLOBAL_EXIT, "", ""))
 	for i, _ := range f.Services {
 		service := f.Services[i]
 		fmt.Println("Checking service for inactivity: ", service.Name)
@@ -117,9 +128,9 @@ func (f *Framework) mergeChannels(channels []<-chan Event) <-chan Event {
 
 // Runs the Framework.
 func (f *Framework) RunDebug() {
-	f.Post(NewEvent(GLOBAL_START, ""))
+	f.Post(NewEvent(GLOBAL_START, "", ""))
 	for i := 0; i < 100; i++ {
-		event := NewEvent(PING, strconv.Itoa(i))
+		event := NewEvent(PING, strconv.Itoa(i), "")
 		f.Post(event)
 	}
 }
