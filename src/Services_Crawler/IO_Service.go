@@ -25,7 +25,7 @@ func (s *IOService) Init() string {
 }
 
 func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
-	fmt.Println("Entering IO service Run Function")
+	// fmt.Println("Entering IO service Run Function")
 
 	returnEvent := NewEvent(NONE, "", "")
 
@@ -38,22 +38,15 @@ func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 		go s.readUserInput(event, sendChannel)
 
 	}
-	fmt.Println("Exiting from IO Service Run Function")
+	// fmt.Println("Exiting from IO Service Run Function")
 	return returnEvent
 }
 
 // ------------------------------------------- Private ------------------------------------------- //
 
 func (s *IOService) readUserInput(event Event, sendChannel chan Event) {
-	fmt.Println("Type 'exit' to quit application.")
-	fmt.Println(event.Parameter)
+	fmt.Println(event.Parameter.(string))
 	text, _ := s.reader.ReadString('\n')
 	text = strings.TrimSpace(text)
-	var newEvent Event
-	if text == "exit" {
-		newEvent = NewEvent(GLOBAL_EXIT, "", "")
-	} else {
-		newEvent = NewEvent(USER_INPUT, text, event.Origin)
-	}
-	sendChannel <- newEvent
+	sendChannel <- NewEvent(USER_INPUT, text, event.Origin)
 }

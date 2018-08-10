@@ -28,13 +28,13 @@ const (
 // Define the Event struct, which is used to pass messages between services
 type Event struct {
 	Type      EventType
-	Parameter string
+	Parameter interface{}
 	Origin    string
 	Target    string
 }
 
 // Event constructor
-func NewEvent(eventType EventType, param string, target string) Event {
+func NewEvent(eventType EventType, param interface{}, target string) Event {
 	newEvent := Event{}
 	newEvent.Type = eventType
 	newEvent.Parameter = param

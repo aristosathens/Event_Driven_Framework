@@ -11,17 +11,20 @@ import (
 
 // Put custom event types here. Assign them to positive integers
 const (
-	PING               EventType = 1
-	PONG               EventType = 2
-	REQUEST_USER_INPUT EventType = 3
-	USER_INPUT         EventType = 4
-	PRINT_LINE         EventType = 5
-	ADD_WEBSITE        EventType = 10
-	REMOVE_WEBSITE     EventType = 11
+	PING                 EventType = 1
+	PONG                 EventType = 2
+	PRINT_LINE           EventType = 5
+	REQUEST_USER_INPUT   EventType = 10
+	USER_INPUT           EventType = 11
+	ADD_WEBSITE          EventType = 20
+	REMOVE_WEBSITE       EventType = 21
+	REQUEST_WEBSITE_LIST EventType = 30
+	WEBSITE_LIST         EventType = 31
 	// UPDATE_MENU        EventType = 10
 )
 
 var AllServiceInterfaces = [...]ServiceInterface{
 	&(IOService{}),
 	&(CrawlerService{}),
+	&(MenuService{}),
 }

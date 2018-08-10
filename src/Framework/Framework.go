@@ -52,9 +52,10 @@ func (f *Framework) Post(event Event) {
 		return
 	}
 	postFlag := false
+	t := event.Target
 	for i, _ := range f.sendChannels {
-		if event.Target == "" || event.Target == f.Services[i].Name {
-			fmt.Println("Posting to: ", f.Services[i].Name)
+		if t == "" || t == "all" || t == f.Services[i].Name {
+			// fmt.Println("Posting to: ", f.Services[i].Name)
 			f.sendChannels[i] <- event
 			postFlag = true
 		}

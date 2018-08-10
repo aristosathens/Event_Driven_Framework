@@ -4,7 +4,6 @@ import (
 	// "encoding/json"
 	. "Framework_Definitions"
 	"JSON_Saver"
-	"fmt"
 	"github.com/kardianos/osext"
 	"net/url"
 	// "strings"
@@ -30,7 +29,7 @@ func (s *CrawlerService) Init() string {
 }
 
 func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event {
-	fmt.Println("Entering Crawler Service Run Function...")
+	// fmt.Println("Entering Crawler Service Run Function...")
 	returnEvent := NewEvent(NONE, "", "")
 
 	switch event.Type {
@@ -38,12 +37,14 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 	case GLOBAL_START:
 
 	case GLOBAL_EXIT:
-		returnEvent.Type = FINISHED
+		returnEvent = NewEvent(FINISHED, "", "")
 
-	case USER_INPUT:
+	case REQUEST_WEBSITE_LIST:
+		returnEvent = NewEvent(WEBSITE_LIST, s.websites, "")
+
 	}
 
-	fmt.Println("Exiting Crawler service")
+	// fmt.Println("Exiting Crawler service")
 	return returnEvent
 }
 
