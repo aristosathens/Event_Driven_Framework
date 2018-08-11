@@ -1,2 +1,1 @@
-Aristos Athens
--Attempt to create an event driven framework.
+Description in the wiki : https://github.com/aristosathens/Event_Driven_Framework/wiki
