@@ -1,0 +1,42 @@
+// The Services.go file should be part of the app's services package. In this example, Services_Crawler for the Crawler app.
+
+package Services_Crawler
+
+// Import Framework_Definitions to get access to the Event type and the Service struct type.
+
+import (
+	. "Framework_Definitions"
+)
+
+// ------------------------------------------- Names ------------------------------------------- //
+
+// To create custom event types, add them here. New event types should be equal to POSITIVE integers (EventType is an alias for int)
+
+// Put custom event types here. Assign them to positive integers
+const (
+	PING                 EventType = 1
+	PONG                 EventType = 2
+	PRINT_LINE           EventType = 5
+	REQUEST_USER_INPUT   EventType = 10
+	USER_INPUT           EventType = 11
+	ADD_WEBSITE          EventType = 20
+	REMOVE_WEBSITE       EventType = 21
+	REQUEST_WEBSITE_LIST EventType = 30
+	WEBSITE_LIST         EventType = 31
+	// UPDATE_MENU        EventType = 10
+)
+
+// All custom services must be added here, with the following format: 
+
+var AllServiceInterfaces = [...]ServiceInterface{
+	&(IOService{}),
+	&(CrawlerService{}),
+	&(MenuService{}),
+}
+
+// ------------------------------------------- ----- ------------------------------------------- //
+// To create a new service, create a new .go file. Define a new struct type. 
+// The Service struct must implement the < Init() string > and < RunFunction(Event, chan Event) Event > methods to conform to the Service interface.
+// You are free to include any fields/methods you want in the struct.
+// See Example_Service.txt for more details.
+// ------------------------------------------- ----- ------------------------------------------- //

@@ -1,88 +1,84 @@
-package Services
+// To add a Service to your app, include this Service file in your app's package
+package Services_Crawler
 
 import (
-	. "ServiceInterface"
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
+	. "Framework_Definitions"
+	"JSON_Saver"
+	. "Utilities"
+	"github.com/kardianos/osext"
 )
 
-// ------------------------------------------- Service Names ------------------------------------------- //
+// ------------------------------------------- Public ------------------------------------------- //
 
-// Put custom event types here. Assign them to positive integers
-const (
-	PING           EventType = 1
-	PONG           EventType = 2
-	GET_USER_INPUT EventType = 3
-)
+// Define your service as a struct.
+// The struct MUST implement the Init() and RunFunction() methods. See below.
+// The struct can include any extra fields (and methods) you need.
 
-var AllServiceInterfaces = [...]ServiceInterface{
-	&(IOService{}),
-	&(TestService{}),
+type CrawlerService struct {
+	path     string
+	websites []string
 }
 
-// ------------------------------------------- Services ------------------------------------------- //
+// Every Service struct MUST implement the <(*ServiceName) Init() string> and the <(*ServiceName) RunFunction(Event, chan Event) Event> methods.
+// The Init() method MUST return the name of the service as a string.
 
-// To create new services, create a struct and implement the methods found in ServiceInterface in ServiceInterface.go
-// All service structs must be in the AllServiceInterfaces array at the top of Services.go
+func (s *CrawlerService) Init() string {
+	path, err := osext.ExecutableFolder()
+	CheckError(err)
 
-// ------------- IO Service ------------- //
-type IOService struct {
-	exampleLocal int
+	err = JSONSaver.Load(path+"\\websites.JSON", &s.websites)
+	CheckError(err)
+
+	return "CrawlerService"
 }
 
-func (s *IOService) Init() {
-	s.exampleLocal = 5
-}
 
-func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
-	fmt.Println("IO service got event: ", event.Type)
-	returnEvent := NewEvent(NONE, "")
+// ------------------------------------------- ----- ------------------------------------------- //
+// When implementing the RunFuction() method, keep the following in mind:
+// 1. The RunFunction() is called every time an even is posted to the service. It should include appropriate responses to all *relevent* Event types.
+// 2. The RunFunction() will be called every time an Event is posted to the Service. Do NOT use blocking code.
+// 2b. If you have blocking subroutines, run them in their own goroutines.
+// 3. RunFunction() returns an Event, which gets posted to all other Services in the Framework. To post extra events, send them on sendChannel.
+// ------------------------------------------- ----- ------------------------------------------- //
 
-	switch eventType := event.Type; eventType {
-	case GLOBAL_EXIT:
-		returnEvent.Type = FINISHED
+
+
+
+
+func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event {
+	// fmt.Println("Entering Crawler Service Run Function...")
+	returnEvent := NewEvent(NONE, "", "")
+
+	switch event.Type {
+
 	case GLOBAL_START:
-		fmt.Println("IOService sees GLOBAL_START event")
-		returnEvent.Type = GET_USER_INPUT
-	case GET_USER_INPUT:
-		go s.inputMonitor(sendChannel)
-	case KEY_DOWN:
-		fmt.Println("Key stroked detected: ", event.Parameter)
-	}
-	fmt.Println("returning from IO Service")
-	return returnEvent
-}
 
-func (s *IOService) inputMonitor(sendChannel chan Event) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter text: ")
-	text, _ := reader.ReadString('\n')
-	text = strings.TrimSpace(text)
-	sendChannel <- NewEvent(KEY_DOWN, text)
-}
-
-// ------------- Test Service ------------- //
-
-type TestService struct {
-}
-
-func (s *TestService) Init() {
-}
-
-func (s *TestService) RunFunction(event Event, sendChannel chan Event) Event {
-	returnEvent := NewEvent(NONE, "")
-	switch eventType := event.Type; eventType {
 	case GLOBAL_EXIT:
-		returnEvent.Type = FINISHED
-	case PING:
-		fmt.Println(fmt.Sprintf("TestService received %s %d event from %s ", event.Parameter, event.Type, event.Origin))
-	case KEY_DOWN:
-		if event.Parameter == "exit" {
-			fmt.Println("Detected exit key stroke")
-			returnEvent.Type = GLOBAL_EXIT
-		}
+		returnEvent = NewEvent(FINISHED, "", "")
+
+	case REQUEST_WEBSITE_LIST:
+		go s.blockingMethod()
+
+	case REQUEST_USER_INPUT:
+
 	}
+
+	// fmt.Println("Exiting Crawler service")
 	return returnEvent
 }
+
+// ------------------------------------------- Private ------------------------------------------- //
+
+// You are free to include any other methods as you see fit.
+
+// func (s *CrawlerService) customMethod() {
+// 	}
+//
+
+// func (s *CrawlerService) blockingMethod() {
+}
+
+
+// ------------------------------------------- ----- ------------------------------------------- //
+// SEE FRAMEWORK_DEFINITIONS FOR MORE DETAILS
+// ------------------------------------------- ----- ------------------------------------------- //
