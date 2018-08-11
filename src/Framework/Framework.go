@@ -55,7 +55,7 @@ func (f *Framework) Post(event Event) {
 	t := event.Target
 	for i, _ := range f.sendChannels {
 		if t == "" || t == "all" || t == f.Services[i].Name {
-			// fmt.Println("Posting to: ", f.Services[i].Name)
+			// fmt.Println("Posting: ", event.Type, f.Services[i].Name)
 			f.sendChannels[i] <- event
 			postFlag = true
 		}

@@ -4,8 +4,9 @@ import (
 	// "encoding/json"
 	. "Framework_Definitions"
 	"JSON_Saver"
+	. "Utilities"
+
 	"github.com/kardianos/osext"
-	"net/url"
 	// "strings"
 	// "os"
 	// "path/filepath"
@@ -20,10 +21,10 @@ type CrawlerService struct {
 
 func (s *CrawlerService) Init() string {
 	path, err := osext.ExecutableFolder()
-	checkError(err)
+	CheckError(err)
 
 	err = JSONSaver.Load(path+"\\websites.JSON", &s.websites)
-	checkError(err)
+	CheckError(err)
 
 	return "CrawlerService"
 }
@@ -58,20 +59,3 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 // }
 
 // ------------------------------------------- Utilities ------------------------------------------- //
-
-// Respond to errors
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-// Checks if string is a valid URL
-func isValidUrl(toCheck string) bool {
-	_, err := url.ParseRequestURI(toCheck)
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
-}

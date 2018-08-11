@@ -98,9 +98,17 @@ func myCaller() string {
 	start := strings.Index(name, "*") + 1
 	end := strings.Index(name, ")")
 
-	newName := name[start:end]
+	// fmt.Println("Name is: ", name)
+	// fmt.Println(start)
+	// fmt.Println(end)
 
-	return newName
+	if start < 0 || end <= 0 {
+		return ""
+	} else {
+		newName := name[start:end]
+		return newName
+
+	}
 }
 
 // Given a function, returns its name

@@ -12,10 +12,10 @@ type EventType int
 // These are the EventTypes necessary in every application.
 // To create custom event types, create a similar list in the Services.go file corresponding to your application. Use positive int values
 const (
-	NONE         EventType = -1
-	GLOBAL_START EventType = -2
-	GLOBAL_EXIT  EventType = -3
-	FINISHED     EventType = -4
+	NONE         EventType = 0
+	GLOBAL_START EventType = -1
+	GLOBAL_EXIT  EventType = -2
+	FINISHED     EventType = -3
 )
 
 // The use of EventType alias and the constants is like an enumerate type

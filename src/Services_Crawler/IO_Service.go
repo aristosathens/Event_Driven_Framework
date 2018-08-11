@@ -30,7 +30,9 @@ func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 	returnEvent := NewEvent(NONE, "", "")
 
 	switch eventType := event.Type; eventType {
+
 	case GLOBAL_START:
+
 	case GLOBAL_EXIT:
 		returnEvent.Type = FINISHED
 
@@ -45,7 +47,11 @@ func (s *IOService) RunFunction(event Event, sendChannel chan Event) Event {
 // ------------------------------------------- Private ------------------------------------------- //
 
 func (s *IOService) readUserInput(event Event, sendChannel chan Event) {
-	fmt.Println(event.Parameter.(string))
+	if event.Parameter == "" {
+		fmt.Print("input: ")
+	} else {
+		fmt.Print(event.Parameter.(string))
+	}
 	text, _ := s.reader.ReadString('\n')
 	text = strings.TrimSpace(text)
 	sendChannel <- NewEvent(USER_INPUT, text, event.Origin)
