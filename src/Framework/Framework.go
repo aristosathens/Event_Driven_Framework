@@ -37,7 +37,7 @@ func (f *Framework) Run() {
 	for {
 		select {
 		case event := <-f.ReceiveChannel:
-			fmt.Println("event detected in Framework")
+			// fmt.Println("event detected in Framework")
 			f.Post(event)
 			if event.Type == GLOBAL_EXIT {
 				return

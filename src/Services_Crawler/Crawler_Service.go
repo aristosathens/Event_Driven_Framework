@@ -43,6 +43,10 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 	case REQUEST_WEBSITE_LIST:
 		returnEvent = NewEvent(WEBSITE_LIST, s.websites, "")
 
+	case REQUEST_USER_INPUT:
+		// ignore this event type
+		return returnEvent
+
 	}
 
 	// fmt.Println("Exiting Crawler service")
