@@ -5,8 +5,9 @@ import (
 	. "Framework_Definitions"
 	"JSON_Saver"
 	. "Utilities"
-
 	"github.com/kardianos/osext"
+	"io/ioutil"
+	"net/http"
 	// "strings"
 	// "os"
 	// "path/filepath"
@@ -17,6 +18,11 @@ import (
 type CrawlerService struct {
 	path     string
 	websites []string
+}
+
+type Website struct {
+	url  string
+	resp *http.Response
 }
 
 func (s *CrawlerService) Init() string {
@@ -54,6 +60,18 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 }
 
 // ------------------------------------------- Private ------------------------------------------- //
+
+func (s *CrawlerService) loadWebsite(url string) *http.Response {
+	resp, err := http.Get(url)
+	CheckError(err)
+	return resp
+}
+
+func (s *CrawlerService) websiteText(site Website) string {
+	body, err := ioutil.ReadAll(site.resp.Body)
+	CheckError(err)
+	return string(body)
+}
 
 // func (s *CrawlerService) updateScreen() {
 // 	switch s.status {

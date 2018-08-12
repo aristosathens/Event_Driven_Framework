@@ -7,20 +7,15 @@ import (
 	"fmt"
 )
 
-// ------------------------------------------- Definitions ------------------------------------------- //
+// ------------------------------------------- Public ------------------------------------------- //
 
-type MenuType int
-
-const (
-	MAIN         MenuType = 1
-	ADD_WEBSITES MenuType = 2
-)
+const ()
 
 type Menu struct {
 	// MenuType MenuType
 	Elements     map[string]MenuItem
 	InputHandler MenuItem
-	data         []interface{}
+	data         **[]interface{}
 }
 
 type MenuItem struct {
@@ -30,46 +25,69 @@ type MenuItem struct {
 
 // Define all menus
 func InitMenus() Menu {
-	var addWebsites Menu
 	var main Menu
+	var addWebsites Menu
+	var crawler Menu
+
+	var shared *[]interface{}
 
 	main = Menu{
-		// MenuType: MAIN,
 		Elements: map[string]MenuItem{
 			"add":   MenuItem{"Add websites", &addWebsites},
+			"crawl": MenuItem{"Crawl websites", &crawler},
 			"print": MenuItem{"Show all websites", (*Menu).displayData},
 			"exit":  MenuItem{"Exit", NewEvent(GLOBAL_EXIT, "", "")},
 		},
-		// InputHandler: nil,
-		// data:         make([]string, 1),
+		data: &shared,
 	}
 
 	addWebsites = Menu{
-		// MenuType: ADD_WEBSITES,
 		Elements: map[string]MenuItem{
 			"print": MenuItem{"Show all websites", (*Menu).displayData},
 			"exit":  MenuItem{"Main Menu", &main},
 		},
 		InputHandler: MenuItem{"Enter url: ", (*Menu).addWebsitesInputHandler},
+		data:         &shared,
+	}
+
+	crawler = Menu{
+		Elements: map[string]MenuItem{
+			"exit": MenuItem{"Main Menu", &main},
+		},
+		InputHandler: MenuItem{"Choose which website to crawl. Type 'all' to crawl all websites", (*Menu).crawlerInputHandler},
+		data:         &shared,
 	}
 
 	return main
 }
 
-// ------------------------------------------- Public ------------------------------------------- //
-
 // ------------------------------------------- Private ------------------------------------------- //
 
 func (m *Menu) addWebsitesInputHandler(input string) {
-	fmt.Println("Adding data to addWebsites menu: ", input)
+	fmt.Println("Adding % to addWebsites menu.", input)
 	if IsValidUrl(input) {
-		(*m).data = append(m.data, input)
+		m.appendSharedData(input)
 		// This adds the website to the data in Main Menu
 		// (*m).Elements["exit"].Response.data = append(((*m).Elements["exit"].Response).(*Menu).data.([]string), input)
 	}
 }
 
+func (m *Menu) crawlerInputHandler(input string) {
+	fmt.Println("Crawling: ", input)
+
+}
+
 // ------------------------------------------- Utilities ------------------------------------------- //
+
+func (m *Menu) appendSharedData(input interface{}) {
+	var newArray []interface{}
+	if *m.data == nil {
+		newArray = []interface{}{input}
+	} else {
+		newArray = append(**m.data, input)
+	}
+	*m.data = &newArray
+}
 
 func (m *Menu) displayMenu() {
 	for key, item := range m.Elements {
@@ -79,7 +97,7 @@ func (m *Menu) displayMenu() {
 
 func (m *Menu) displayData() {
 	fmt.Println("Menu data: ")
-	for _, elem := range m.data {
+	for _, elem := range **m.data {
 		fmt.Println(elem)
 	}
 }
