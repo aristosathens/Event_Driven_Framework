@@ -2,10 +2,10 @@ package Services_GIS
 
 import (
 	// "bufio"
+	. "Framework_Definitions"
 	"encoding/csv"
 	"fmt"
-	// "github.com/disintegration/imaging"
-	. "Framework_Definitions"
+	"github.com/disintegration/imaging"
 	"image"
 	"image/color"
 	"image/draw"
@@ -31,6 +31,16 @@ type dataset struct {
 type dataRange struct {
 	lower float64
 	upper float64
+}
+
+func NewRange(lower, upper float64) dataRange {
+	if lower == -1 {
+		lower = 0
+	}
+	if upper == -1 {
+		upper = math.MaxFloat64
+	}
+	return dataRange{lower, upper}
 }
 
 // Format for data requests
@@ -61,16 +71,17 @@ type GISService struct {
 // Initialize the service
 func (s *GISService) Init() string {
 	// Load blank map
-	imgFile := loadImage("blank_world_map.jpg")
+	imgFile := loadImage("Data\\blank_world_map.jpg")
 	s.initMap(&imgFile, image.Point{180, -60}, image.Point{-180, 90})
 	s.image = image.NewRGBA(imgFile.Bounds())
 	draw.Draw(s.image, imgFile.Bounds(), imgFile, imgFile.Bounds().Min, draw.Src)
 
 	// Load basic data set (cities)
-	csvFile, err := os.Open("cities.csv")
+	csvFile, err := os.Open("Data\\cities.csv")
 	checkError(err)
 	cityData, err := csv.NewReader(csvFile).ReadAll()
 	checkError(err)
+	s.datasets = map[string]*dataset{}
 	s.datasets["city"] = &dataset{name: "city", indices: cityIndex, data: cityData}
 
 	return "GISService"
@@ -88,6 +99,8 @@ func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 
 	case GENERATE_MAP:
 		s.generateMap(event.Parameter.(dataRequest))
+		saveImage(s.image, "Data\\Output.jpg", true)
+
 	}
 	return returnEvent
 }
@@ -110,7 +123,7 @@ func (s *GISService) generateMap(request dataRequest) {
 				lon, _ := strconv.ParseFloat(set.data[i][set.indices["longitude"]], 64)
 				lat, _ := strconv.ParseFloat(set.data[i][set.indices["latitude"]], 64)
 				location := s.mapToPixels(lat, lon)
-				drawDot(s.image, location, 3, true)
+				drawDot(s.image, location, (int)(floatData/(1e6)), false)
 			}
 		}
 	}
@@ -166,10 +179,12 @@ func loadImage(fileName string) image.Image {
 	return img
 }
 
-func saveImage(img image.Image, fileName string) {
+func saveImage(img image.Image, fileName string, rotate bool) {
 	f, err := os.Create(fileName)
 	checkError(err)
-	// img = imaging.Rotate(img, 180.0, color.RGBA{0, 0, 0, 0})
+	if rotate {
+		img = imaging.Rotate(img, 180.0, color.RGBA{0, 0, 0, 0})
+	}
 	err = jpeg.Encode(f, img, nil)
 	checkError(err)
 }

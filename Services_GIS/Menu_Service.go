@@ -13,20 +13,12 @@ import (
 
 const ()
 
-// type MenuType int
-
-// const (
-// 	MAIN         MenuType = 0
-// 	ADD_WEBSITES MenuType = 1
-// )
-
 // ------------------------------------------- Public ------------------------------------------- //
 
 type MenuService struct {
 	currentMenu Menu
 	path        string
-	// menus       []Menu
-	websites []string
+	websites    []string
 }
 
 func (s *MenuService) Init() string {
@@ -88,7 +80,7 @@ func (s *MenuService) respondToInput(event Event, sendChannel chan Event) Event 
 	}
 
 	if s.currentMenu.InputHandler.Response != nil {
-		s.currentMenu.InputHandler.Response.(func(*Menu, string))(&s.currentMenu, msg)
+		return s.currentMenu.InputHandler.Response.(func(*Menu, string) Event)(&s.currentMenu, msg)
 	}
 	return NewEvent(NONE, "", "")
 }

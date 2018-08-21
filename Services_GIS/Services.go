@@ -17,11 +17,7 @@ const (
 	REQUEST_USER_INPUT EventType = 10
 	USER_INPUT         EventType = 11
 	GENERATE_MAP       EventType = 20
-	// ADD_WEBSITE          EventType = 20
-	// REMOVE_WEBSITE       EventType = 21
-	// REQUEST_WEBSITE_LIST EventType = 30
-	// WEBSITE_LIST         EventType = 31
-	// UPDATE_MENU        EventType = 10
+	// REQUEST_DATA       EventType = 30
 )
 
 var AllServiceInterfaces = [...]ServiceInterface{
