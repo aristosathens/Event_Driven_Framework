@@ -26,22 +26,23 @@ type MenuItem struct {
 // Define all menus
 func InitMenus() Menu {
 	var main Menu
-	var addWebsites Menu
-	var crawler Menu
+	var changeData Menu
+	var help Menu
 
 	var shared *[]interface{}
 
 	main = Menu{
 		Elements: map[string]MenuItem{
-			"add":   MenuItem{"Add websites", &addWebsites},
-			"crawl": MenuItem{"Crawl websites", &crawler},
-			"print": MenuItem{"Show all websites", (*Menu).displayData},
-			"exit":  MenuItem{"Exit", NewEvent(GLOBAL_EXIT, "", "")},
+			"data": MenuItem{"Add/remove data", &changeData},
+			"help": MenuItem{"Help", &help},
+			// "crawl": MenuItem{"Crawl websites", &crawler},
+			// "print": MenuItem{"Show all websites", (*Menu).displayData},
+			"exit": MenuItem{"Exit", NewEvent(GLOBAL_EXIT, "", "")},
 		},
 		data: &shared,
 	}
 
-	addWebsites = Menu{
+	changeData = Menu{
 		Elements: map[string]MenuItem{
 			"print": MenuItem{"Show all websites", (*Menu).displayData},
 			"exit":  MenuItem{"Main Menu", &main},
@@ -50,7 +51,7 @@ func InitMenus() Menu {
 		data:         &shared,
 	}
 
-	crawler = Menu{
+	help = Menu{
 		Elements: map[string]MenuItem{
 			"exit": MenuItem{"Main Menu", &main},
 		},

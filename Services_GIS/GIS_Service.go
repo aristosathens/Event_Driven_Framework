@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	// "github.com/disintegration/imaging"
+	. "Framework_Definitions"
 	"image"
 	"image/color"
 	"image/draw"
@@ -16,34 +17,130 @@ import (
 	"strings"
 )
 
-// Lat/Long to pixels
-var yStep, xStep float64
-var centerPixels image.Point
-var globalImg *image.RGBA
+const ()
 
-// ------------------------------------------- Main ------------------------------------------- //
+// ------------------------------------------- Datasets ------------------------------------------- //
 
-func main() {
+type dataset struct {
+	name    string
+	indices map[string]int
+	data    [][]string
+}
+
+// A range of data, half open. [lower, upper)
+type dataRange struct {
+	lower float64
+	upper float64
+}
+
+// Format for data requests
+type dataRequest struct {
+	datasetName string
+	requested   map[string][]dataRange
+}
+
+// Specific to city dataset
+// https://simplemaps.com/data/world-cities
+var cityIndex = map[string]int{
+	"name":       1,
+	"longitude":  2,
+	"latitude":   3,
+	"population": 4,
+	"country":    5,
+}
+
+// ------------------------------------------- Public ------------------------------------------- //
+
+type GISService struct {
+	image        *image.RGBA
+	yStep, xStep float64
+	centerPixel  image.Point
+	datasets     map[string]*dataset
+}
+
+// Initialize the service
+func (s *GISService) Init() string {
+	// Load blank map
 	imgFile := loadImage("blank_world_map.jpg")
-	initMap(&imgFile, image.Point{180, -60}, image.Point{-180, 90})
+	s.initMap(&imgFile, image.Point{180, -60}, image.Point{-180, 90})
+	s.image = image.NewRGBA(imgFile.Bounds())
+	draw.Draw(s.image, imgFile.Bounds(), imgFile, imgFile.Bounds().Min, draw.Src)
 
-	img := image.NewRGBA(imgFile.Bounds())
-	draw.Draw(img, imgFile.Bounds(), imgFile, imgFile.Bounds().Min, draw.Src)
-
-	globalImg = img
+	// Load basic data set (cities)
 	csvFile, err := os.Open("cities.csv")
 	checkError(err)
-	cities, err := csv.NewReader(csvFile).ReadAll()
+	cityData, err := csv.NewReader(csvFile).ReadAll()
 	checkError(err)
-	var location image.Point
-	for i, _ := range cities {
-		lon, _ := strconv.ParseFloat(cities[i][2], 32)
-		lat, _ := strconv.ParseFloat(cities[i][3], 32)
-		location = mapToPixels(lat, lon)
-		drawDot(img, location, 3, true)
+	s.datasets["city"] = &dataset{name: "city", indices: cityIndex, data: cityData}
+
+	return "GISService"
+}
+
+func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
+	returnEvent := NewEvent(NONE, "", "")
+
+	switch eventType := event.Type; eventType {
+
+	case GLOBAL_START:
+
+	case GLOBAL_EXIT:
+		returnEvent.Type = FINISHED
+
+	case GENERATE_MAP:
+		s.generateMap(event.Parameter.(dataRequest))
 	}
-	fmt.Println(cities)
-	saveImage(img, "OUTPUT.jpg")
+	return returnEvent
+}
+
+// ------------------------------------------- Private ------------------------------------------- //
+
+// Functions that depend on (or change) service state go here
+
+// func (s *GISService) loadData() {
+
+// }
+
+func (s *GISService) generateMap(request dataRequest) {
+
+	set := s.datasets[request.datasetName]
+	for i, _ := range set.data {
+		for dataType, dataRange := range request.requested {
+			floatData, _ := strconv.ParseFloat(set.data[i][set.indices[dataType]], 64)
+			if isInRange(floatData, &dataRange) {
+				lon, _ := strconv.ParseFloat(set.data[i][set.indices["longitude"]], 64)
+				lat, _ := strconv.ParseFloat(set.data[i][set.indices["latitude"]], 64)
+				location := s.mapToPixels(lat, lon)
+				drawDot(s.image, location, 3, true)
+			}
+		}
+	}
+}
+
+func (s *GISService) initMap(img *image.Image, topleft, bottomright image.Point) {
+	bounds := (*img).Bounds()
+	s.yStep = math.Abs((float64)(bounds.Max.Y-bounds.Min.Y) / (float64)(topleft.Y-bottomright.Y))
+	s.xStep = math.Abs((float64)(bounds.Max.X-bounds.Min.X) / (float64)(topleft.X-bottomright.X))
+	yCenterPixel := (int)((float64)(-topleft.Y) * s.yStep)
+	xCenterPixel := (int)((float64)(topleft.X) * s.xStep)
+	s.centerPixel = image.Point{xCenterPixel, yCenterPixel}
+}
+
+func (s *GISService) mapToPixels(longitude, latitude float64) image.Point {
+	x := s.centerPixel.X - (int)(s.xStep*(float64)(longitude))
+	y := s.centerPixel.Y + (int)(s.yStep*(float64)(latitude))
+	return image.Point{x, y}
+}
+
+// ------------------------------------------- Utility ------------------------------------------- //
+
+// Purely functional routines go here
+// None of these functions should depend on (or change) state
+
+// Respond to errors
+func checkError(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func loadImage(fileName string) image.Image {
@@ -77,21 +174,6 @@ func saveImage(img image.Image, fileName string) {
 	checkError(err)
 }
 
-func initMap(img *image.Image, topleft, bottomright image.Point) {
-	bounds := (*img).Bounds()
-	yStep = math.Abs((float64)(bounds.Max.Y-bounds.Min.Y) / (float64)(topleft.Y-bottomright.Y))
-	xStep = math.Abs((float64)(bounds.Max.X-bounds.Min.X) / (float64)(topleft.X-bottomright.X))
-	yCenterPixels := (int)((float64)(-topleft.Y) * yStep)
-	xCenterPixels := (int)((float64)(topleft.X) * xStep)
-	centerPixels = image.Point{xCenterPixels, yCenterPixels}
-}
-
-func mapToPixels(longitude, latitude float64) image.Point {
-	x := centerPixels.X - (int)(xStep*(float64)(longitude))
-	y := centerPixels.Y + (int)(yStep*(float64)(latitude))
-	return image.Point{x, y}
-}
-
 func drawDot(img *image.RGBA, location image.Point, size int, filled bool) {
 	if filled {
 		for i := -size; i < size; i++ {
@@ -109,11 +191,12 @@ func drawDot(img *image.RGBA, location image.Point, size int, filled bool) {
 	}
 }
 
-// ------------------------------------------- Utility ------------------------------------------- //
-
-// Respond to errors
-func checkError(err error) {
-	if err != nil {
-		panic(err)
+// Checks if value is contained in any of a set of ranges
+func isInRange(value float64, data *[]dataRange) bool {
+	for i, _ := range *data {
+		if value >= (*data)[i].lower && value < (*data)[i].upper {
+			return true
+		}
 	}
+	return false
 }
