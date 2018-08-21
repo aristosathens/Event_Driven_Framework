@@ -2,7 +2,8 @@ package Framework
 
 import (
 	. "Framework_Definitions"
-	. "Services_Crawler"
+	// . "Services_Crawler"
+	. "Services_GIS"
 	"fmt"
 	"strconv"
 )
