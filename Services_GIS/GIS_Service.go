@@ -97,6 +97,8 @@ func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 	case GLOBAL_EXIT:
 		returnEvent.Type = FINISHED
 
+	case ADD_DATA:
+
 	case GENERATE_MAP:
 		s.generateMap(event.Parameter.(dataRequest))
 		saveImage(s.image, "Data\\Output.jpg", true)

@@ -39,8 +39,8 @@ func (s *MenuService) RunFunction(event Event, sendChannel chan Event) Event {
 		returnEvent.Type = FINISHED
 
 	case USER_INPUT:
-		sendChannel <- NewEvent(REQUEST_USER_INPUT, "", "")
 		returnEvent = s.respondToInput(event, sendChannel)
+		sendChannel <- NewEvent(REQUEST_USER_INPUT, s.currentMenu.InputHandler.Label, "")
 
 	case REQUEST_USER_INPUT:
 		// ignore this event type
@@ -61,10 +61,8 @@ func (s *MenuService) respondToInput(event Event, sendChannel chan Event) Event 
 	for key, elem := range s.currentMenu.Elements {
 		item := elem.Response
 		if msg == key || msg == string(key[0]) {
-			// fmt.Println("Key found: ", key)
 			switch item.(type) {
 			case *Menu:
-				// fmt.Println("Switching menus")
 				s.currentMenu = *(item.(*Menu))
 			case func(*Menu):
 				fmt.Println(s.currentMenu)
@@ -73,7 +71,6 @@ func (s *MenuService) respondToInput(event Event, sendChannel chan Event) Event 
 				sendChannel <- item.(Event)
 			default:
 				fmt.Println("Default case - Shouldn't be here !")
-				// break
 			}
 			return NewEvent(NONE, "", "")
 		}

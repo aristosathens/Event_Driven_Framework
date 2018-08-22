@@ -16,7 +16,10 @@ const (
 	PRINT_LINE         EventType = 5
 	REQUEST_USER_INPUT EventType = 10
 	USER_INPUT         EventType = 11
-	GENERATE_MAP       EventType = 20
+	ADD_DATA           EventType = 20
+	REMOVE_DATA        EventType = 21
+	GENERATE_MAP       EventType = 22
+
 	// REQUEST_DATA       EventType = 30
 )
 
