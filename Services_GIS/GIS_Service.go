@@ -99,10 +99,17 @@ func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 
 	case ADD_DATA:
 
+	case REQUEST_DATASET_NAMES:
+		returnEvent.Type = DATASET_CHANGE
+		returnEvent.Parameter = &s.datasets
+
 	case GENERATE_MAP:
 		s.generateMap(event.Parameter.(dataRequest))
 		saveImage(s.image, "Data\\Output.jpg", true)
 
+	case CHECK_DATA_REQUEST:
+		returnEvent.Type = IS_VALID_DATA_REQUEST
+		returnEvent.Parameter = s.checkDataRequest(event.Parameter.(dataRequest))
 	}
 	return returnEvent
 }
@@ -144,6 +151,40 @@ func (s *GISService) mapToPixels(longitude, latitude float64) image.Point {
 	x := s.centerPixel.X - (int)(s.xStep*(float64)(longitude))
 	y := s.centerPixel.Y + (int)(s.yStep*(float64)(latitude))
 	return image.Point{x, y}
+}
+
+// Checks if all requests ask for datasets and datatypes that exist in the currently loaded datasets
+func (s *GISService) checkDataRequest(request dataRequest) bool {
+
+	// for _, request := range requests {
+	// Check if datasetName exists
+	var matchedSet *dataset
+	for _, set := range s.datasets {
+		if set.name == request.datasetName {
+			matchedSet = set
+			break
+		}
+	}
+	if matchedSet == nil {
+		fmt.Println(request.datasetName + " is not a valid dataset name.")
+		return false
+	}
+
+	for keyRequested, _ := range request.requested {
+		flag := false
+		for keyDataSet, _ := range (*matchedSet).indices {
+			if keyRequested == keyDataSet {
+				flag = true
+				break
+			}
+		}
+		if flag == false {
+			fmt.Println(keyRequested + " is not a valid data type in " + matchedSet.name + " dataset.")
+			return false
+		}
+	}
+	// }
+	return true
 }
 
 // ------------------------------------------- Utility ------------------------------------------- //

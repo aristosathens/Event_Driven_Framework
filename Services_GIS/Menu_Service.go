@@ -36,19 +36,26 @@ func (s *MenuService) RunFunction(event Event, sendChannel chan Event) Event {
 		returnEvent.Type = REQUEST_USER_INPUT
 
 	case GLOBAL_EXIT:
-		returnEvent.Type = FINISHED
+		return NewEvent(FINISHED, "", "")
 
 	case USER_INPUT:
-		returnEvent = s.respondToInput(event, sendChannel)
-		sendChannel <- NewEvent(REQUEST_USER_INPUT, s.currentMenu.InputHandler.Label, "")
+		sendChannel <- s.respondToInput(event, sendChannel)
+		returnEvent = NewEvent(REQUEST_USER_INPUT, s.currentMenu.InputHandler.Label, "")
 
-	case REQUEST_USER_INPUT:
-		// ignore this event type
+	case IS_VALID_DATA_REQUEST:
+		if event.Parameter == true {
+			for _, request := range **(s.currentMenu.tempData) {
+				**(s.currentMenu.requestData) = mergeRequests(**(s.currentMenu.requestData), request)
+			}
+		}
+		s.currentMenu.clearTempData()
+		return returnEvent
+
+	default:
 		return returnEvent
 	}
 
 	s.currentMenu.displayMenu()
-	// sendChannel <- NewEvent(REQUEST_USER_INPUT, "", "")
 	return returnEvent
 }
 
@@ -65,7 +72,6 @@ func (s *MenuService) respondToInput(event Event, sendChannel chan Event) Event 
 			case *Menu:
 				s.currentMenu = *(item.(*Menu))
 			case func(*Menu):
-				fmt.Println(s.currentMenu)
 				item.(func(*Menu))(&s.currentMenu)
 			case Event:
 				sendChannel <- item.(Event)
