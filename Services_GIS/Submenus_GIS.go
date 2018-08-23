@@ -43,6 +43,7 @@ func InitMenus() Menu {
 		Elements: map[string]MenuItem{
 			"data": MenuItem{"Change data", &changeData},
 			"help": MenuItem{"Help", &help},
+			"gen":  MenuItem{"Generate map", NewEvent(GENERATE_MAP, &sharedRequests, "")},
 			"exit": MenuItem{"Exit", NewEvent(GLOBAL_EXIT, "", "")},
 		},
 		requestData: &sharedRequests,
@@ -185,6 +186,7 @@ func trim(input string) string {
 	return strings.TrimSpace(input)
 }
 
+// Merge request into array of requests. Properly handles dataset name and data type
 func mergeRequests(requests []dataRequest, req dataRequest) []dataRequest {
 	for _, request := range requests {
 		// if req is for a dataset already in requests

@@ -104,7 +104,7 @@ func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 		returnEvent.Parameter = &s.datasets
 
 	case GENERATE_MAP:
-		s.generateMap(event.Parameter.(dataRequest))
+		s.generateMap(event.Parameter.(**[]dataRequest))
 		saveImage(s.image, "Data\\Output.jpg", true)
 
 	case CHECK_DATA_REQUEST:
@@ -122,17 +122,20 @@ func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 
 // }
 
-func (s *GISService) generateMap(request dataRequest) {
+func (s *GISService) generateMap(requestPointer **[]dataRequest) {
 
-	set := s.datasets[request.datasetName]
-	for i, _ := range set.data {
-		for dataType, dataRange := range request.requested {
-			floatData, _ := strconv.ParseFloat(set.data[i][set.indices[dataType]], 64)
-			if isInRange(floatData, &dataRange) {
-				lon, _ := strconv.ParseFloat(set.data[i][set.indices["longitude"]], 64)
-				lat, _ := strconv.ParseFloat(set.data[i][set.indices["latitude"]], 64)
-				location := s.mapToPixels(lat, lon)
-				drawDot(s.image, location, (int)(floatData/(1e6)), false)
+	for _, request := range **requestPointer {
+		// request := **requestPointer
+		set := s.datasets[request.datasetName]
+		for i, _ := range set.data {
+			for dataType, dataRange := range request.requested {
+				floatData, _ := strconv.ParseFloat(set.data[i][set.indices[dataType]], 64)
+				if isInRange(floatData, &dataRange) {
+					lon, _ := strconv.ParseFloat(set.data[i][set.indices["longitude"]], 64)
+					lat, _ := strconv.ParseFloat(set.data[i][set.indices["latitude"]], 64)
+					location := s.mapToPixels(lat, lon)
+					drawDot(s.image, location, (int)(floatData/(1e6)), true)
+				}
 			}
 		}
 	}
