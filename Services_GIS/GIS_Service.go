@@ -59,6 +59,10 @@ var cityIndex = map[string]int{
 	"country":    5,
 }
 
+// Specific to XXX dataset
+// TO DO: Find dataset, get indices
+var countryIndex = map[string]int{}
+
 // ------------------------------------------- Public ------------------------------------------- //
 
 type GISService struct {
