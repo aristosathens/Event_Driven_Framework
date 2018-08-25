@@ -3,7 +3,6 @@ package Services_GIS
 import (
 	// "bufio"
 	. "Framework_Definitions"
-	"encoding/csv"
 	"fmt"
 	"github.com/disintegration/imaging"
 	"image"
@@ -33,6 +32,7 @@ type dataRange struct {
 	upper float64
 }
 
+// dataRange constructor
 func NewRange(lower, upper float64) dataRange {
 	if lower == -1 {
 		lower = 0
@@ -49,21 +49,19 @@ type dataRequest struct {
 	requested   map[string][]dataRange
 }
 
-// Specific to city dataset
-// https://simplemaps.com/data/world-cities
-var cityIndex = map[string]int{
-	"name":       1,
-	"longitude":  2,
-	"latitude":   3,
-	"population": 4,
-	"country":    5,
-}
-
-// Specific to XXX dataset
-// TO DO: Find dataset, get indices
-var countryIndex = map[string]int{}
+// // Specific to city dataset
+// // https://simplemaps.com/data/world-cities
+// var cityIndex = map[string]int{
+// 	"name":       1,
+// 	"longitude":  2,
+// 	"latitude":   3,
+// 	"population": 4,
+// 	"country":    5,
+// }
 
 // ------------------------------------------- Public ------------------------------------------- //
+
+// See GIS_Service_datasets.go for details about specific datasets. Put user provided dataset details in that file
 
 type GISService struct {
 	image        *image.RGBA
@@ -80,17 +78,14 @@ func (s *GISService) Init() string {
 	s.image = image.NewRGBA(imgFile.Bounds())
 	draw.Draw(s.image, imgFile.Bounds(), imgFile, imgFile.Bounds().Min, draw.Src)
 
-	// Load basic data set (cities)
-	csvFile, err := os.Open("Data\\cities.csv")
-	checkError(err)
-	cityData, err := csv.NewReader(csvFile).ReadAll()
-	checkError(err)
-	s.datasets = map[string]*dataset{}
-	s.datasets["city"] = &dataset{name: "city", indices: cityIndex, data: cityData}
+	// Load datasets
+	s.loadCityDataset()
+	s.loadCountryDataset()
 
 	return "GISService"
 }
 
+// Respond to events posted to the service
 func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 	returnEvent := NewEvent(NONE, "", "")
 
@@ -122,17 +117,16 @@ func (s *GISService) RunFunction(event Event, sendChannel chan Event) Event {
 
 // Functions that depend on (or change) service state go here
 
-// func (s *GISService) loadData() {
+// Draws data from dataRequest
+func (s *GISService) generateMap(requestsPointer **[]dataRequest) {
 
-// }
-
-func (s *GISService) generateMap(requestPointer **[]dataRequest) {
-
-	for _, request := range **requestPointer {
-		// request := **requestPointer
+	for _, request := range **requestsPointer {
 		set := s.datasets[request.datasetName]
+
 		for i, _ := range set.data {
+
 			for dataType, dataRange := range request.requested {
+
 				floatData, _ := strconv.ParseFloat(set.data[i][set.indices[dataType]], 64)
 				if isInRange(floatData, &dataRange) {
 					lon, _ := strconv.ParseFloat(set.data[i][set.indices["longitude"]], 64)
@@ -206,7 +200,9 @@ func checkError(err error) {
 	}
 }
 
+// Loads an image frome a fileName
 func loadImage(fileName string) image.Image {
+
 	file, err := os.Open(fileName)
 	checkError(err)
 	defer file.Close()
@@ -229,7 +225,9 @@ func loadImage(fileName string) image.Image {
 	return img
 }
 
+// Saves image to location provided by fileName. rotate bool is a flag for rotating saved image 180 degrees
 func saveImage(img image.Image, fileName string, rotate bool) {
+
 	f, err := os.Create(fileName)
 	checkError(err)
 	if rotate {
@@ -239,7 +237,9 @@ func saveImage(img image.Image, fileName string, rotate bool) {
 	checkError(err)
 }
 
+// Draws square dot centered on point in image. Can be outline or filled
 func drawDot(img *image.RGBA, location image.Point, size int, filled bool) {
+
 	if filled {
 		for i := -size; i < size; i++ {
 			for j := -size; j < size; j++ {
@@ -258,6 +258,7 @@ func drawDot(img *image.RGBA, location image.Point, size int, filled bool) {
 
 // Checks if value is contained in any of a set of ranges
 func isInRange(value float64, data *[]dataRange) bool {
+
 	for i, _ := range *data {
 		if value >= (*data)[i].lower && value < (*data)[i].upper {
 			return true

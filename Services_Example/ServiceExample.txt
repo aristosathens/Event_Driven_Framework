@@ -19,7 +19,7 @@ type CrawlerService struct {
 	websites []string
 }
 
-// Every Service struct MUST implement the <(*ServiceName) Init() string> and the <(*ServiceName) RunFunction(Event, chan Event) Event> methods.
+// Every Service struct MUST implement the < (*ServiceName) Init() string > and the < (*ServiceName) RunFunction(Event, chan Event) Event > methods.
 // The Init() method MUST return the name of the service as a string.
 
 func (s *CrawlerService) Init() string {
@@ -61,6 +61,8 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 
 	case REQUEST_USER_INPUT:
 
+	default:
+
 	}
 
 	// fmt.Println("Exiting Crawler service")
@@ -80,5 +82,5 @@ func (s *CrawlerService) RunFunction(event Event, sendChannel chan Event) Event 
 
 
 // ------------------------------------------- ----- ------------------------------------------- //
-// SEE FRAMEWORK_DEFINITIONS FOR MORE DETAILS
+// See Services.txt and FrameWorkDefinitions.go for more details.
 // ------------------------------------------- ----- ------------------------------------------- //

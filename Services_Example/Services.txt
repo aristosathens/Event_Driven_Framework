@@ -36,7 +36,7 @@ var AllServiceInterfaces = [...]ServiceInterface{
 
 // ------------------------------------------- ----- ------------------------------------------- //
 // To create a new service, create a new .go file. Define a new struct type. 
-// The Service struct must implement the < Init() string > and < RunFunction(Event, chan Event) Event > methods to conform to the Service interface.
+// The Service struct must implement the < (*ServiceName) Init() string > and < RunFunction(Event, chan Event) Event > methods to conform to the Service interface.
 // You are free to include any fields/methods you want in the struct.
-// See Example_Service.txt for more details.
+// See ServiceExample.txt for more details.
 // ------------------------------------------- ----- ------------------------------------------- //

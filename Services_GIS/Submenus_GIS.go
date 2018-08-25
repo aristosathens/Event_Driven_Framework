@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	// "text/tabwriter"
 )
 
 const ()
@@ -161,6 +162,31 @@ func (m *Menu) displayMenu() {
 		fmt.Println(" ( " + key + " ) " + item.Label)
 	}
 }
+
+// Prints currently defined aliases
+// func displayAliases() {
+// 	tabWriter := tabwriter.NewWriter(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug)
+// 	fmt.Fprintln(tabWriter, "NAME \t COMMAND(S)")
+// 	fmt.Fprintln(tabWriter, "---- \t ----------")
+
+// 	for _, alias := range currentAliases {
+// 		command := getAliasCommand(alias)
+// 		leftCol := alias
+// 		for {
+// 			i := strings.Index(command, "\n")
+// 			if i == -1 {
+// 				i = len(command)
+// 				fmt.Fprintln(tabWriter, leftCol+" \t "+command[:i])
+// 				break
+// 			}
+// 			column := leftCol + " \t " + command[:i]
+// 			fmt.Fprintln(tabWriter, column)
+// 			command = command[i+1:]
+// 			leftCol = ""
+// 		}
+// 	}
+// 	tabWriter.Flush()
+// }
 
 func (m *Menu) displayData() {
 	for _, elem := range **m.requestData {

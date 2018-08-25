@@ -6,23 +6,16 @@ import (
 
 // ------------------------------------------- Event Definitions ------------------------------------------- //
 
-// The use of EventType alias and the constants is like an enumerate type
+// The use of EventType alias and the constants is like an enumerated type
 type EventType int
 
 // These are the EventTypes necessary in every application.
-// To create custom event types, create a similar list in the Services.go file corresponding to your application. Use positive int values
+// To create custom event types, create a similar list in the Services.go file for your package. Use positive int values there.
 const (
 	NONE         EventType = 0
 	GLOBAL_START EventType = -1
 	GLOBAL_EXIT  EventType = -2
 	FINISHED     EventType = -3
-)
-
-// The use of EventType alias and the constants is like an enumerate type
-type ParameterType int
-
-const (
-	EMPTY ParameterType = 0
 )
 
 // Define the Event struct, which is used to pass messages between services

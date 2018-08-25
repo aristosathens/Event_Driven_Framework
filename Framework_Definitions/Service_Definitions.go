@@ -9,11 +9,12 @@ import (
 
 // ------------------------------------------- Service Definitions ------------------------------------------- //
 
+// Number of events that can be queued in each service
 const (
 	BufferSize = 200
 )
 
-// All services must be a struct with implementations of the methods defined in this interface
+// All Services must be a struct with implementations of the methods defined in this interface
 type ServiceInterface interface {
 	Init() string
 	RunFunction(Event, chan Event) Event
@@ -29,13 +30,13 @@ type Service struct {
 	Locals         ServiceInterface
 }
 
-// // Constructor for a Service struct
+// Constructor for a Service struct
 func NewService(serviceStruct ServiceInterface) Service {
 	newStruct := Service{}
 	newStruct.Active = false
 
 	newStruct.Locals = serviceStruct
-	newStruct.Name = newStruct.Locals.Init()
+	newStruct.Name = newStruct.Locals.Init() // Init() function should return service's name
 	newStruct.RunFunction = serviceStruct.RunFunction
 
 	newStruct.ReceiveChannel = make(chan Event, BufferSize)
@@ -97,10 +98,6 @@ func myCaller() string {
 	name := fun.Name()
 	start := strings.Index(name, "*") + 1
 	end := strings.Index(name, ")")
-
-	// fmt.Println("Name is: ", name)
-	// fmt.Println(start)
-	// fmt.Println(end)
 
 	if start < 0 || end <= 0 {
 		return ""
