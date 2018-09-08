@@ -2,7 +2,7 @@ package Services_GIS
 
 import (
 	// "encoding/json"
-	. "Framework_Definitions"
+	. "Framework/Framework_Definitions"
 	// "JSON_Saver"
 	"fmt"
 	"strings"

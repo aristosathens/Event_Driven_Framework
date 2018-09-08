@@ -2,7 +2,7 @@ package Services_GIS
 
 import (
 	// "bufio"
-	. "Framework_Definitions"
+	. "Framework/Framework_Definitions"
 	"fmt"
 	"github.com/disintegration/imaging"
 	"image"

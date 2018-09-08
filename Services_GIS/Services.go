@@ -1,7 +1,7 @@
 package Services_GIS
 
 import (
-	. "Framework_Definitions"
+	. "Framework/Framework_Definitions"
 )
 
 // ------------------------------------------- Definitions ------------------------------------------- //
